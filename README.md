@@ -43,7 +43,7 @@
   ├─────────────────────────┼──────────────────────────────────┼──────────────┤
   │ PERSISTER_CONCURRENCY   │ Max concurrent persister jobs    │ 2            │
   ├─────────────────────────┼──────────────────────────────────┼──────────────┤
-  │ BOOKS_SCHEDULE          │ Cron schedule for books scrape   │ 0 2 * * *    │
+  │ BOOK_SCHEDULE           │ Cron schedule for books scrape   │ 0 2 * * *    │
   ├─────────────────────────┼──────────────────────────────────┼──────────────┤
   │ HN_SCHEDULE             │ Cron schedule for HN scrape      │ */15 * * * * │
   ├─────────────────────────┼──────────────────────────────────┼──────────────┤
@@ -65,7 +65,9 @@
   API Endpoints
 
   - POST /api/v1/jobs/trigger - Trigger a scrape job
+  - POST /api/v1/jobs/dlq/:jobId/retry - Retry a DLQ job
   - GET /api/v1/jobs - List all jobs
+  - GET /api/v1/jobs/dlq/:id - Get dlq contents
   - GET /api/v1/jobs/:id - Get job detail
   - GET /api/v1/books - List books
   - GET /api/v1/books/:upc - Get book by UPC
@@ -73,9 +75,8 @@
   - GET /api/v1/stories/:hn_item_id - Get story by ID
   - GET /api/v1/metrics - Queue metrics
   - GET /api/v1/health - Health check
+  - DELETE /api/v1/jobs/dlq/:id - Delete a DLQ job
 
   Known Limitations
 
   - Category extraction defaults to 'Unknown' — full category scraping can be added by following the category page links
-  - DLQ inspect/retry endpoints are pending implementation
-  - No unit tests
