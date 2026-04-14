@@ -15,6 +15,24 @@ services:
         - "5433:5432"
       volumes: 
         - postgres-data:/var/lib/postgresql/data
-  
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://dataharvest:dataharvest@postgres:5432/dataharvest
+      REDIS_URL: redis://redis:6379
+      SCRAPER_CONCURRENCY: 3
+      TRANSFORMER_CONCURRENCY: 5
+      PERSISTER_CONCURRENCY: 2
+      BOOK_SCHEDULE: "0 2 * * *"
+      HN_SCHEDULE: "*/15 * * * *"
+      REQUEST_DELAY_MS: 1000
+      PORT: 3000
+    depends_on:
+      - postgres
+      - redis
+    command: sh -c "npm run migrate && node dist/src/index.js"
+
 volumes:
   postgres-data:
