@@ -77,6 +77,25 @@
   - GET /api/v1/health - Health check
   - DELETE /api/v1/jobs/dlq/:id - Delete a DLQ job
 
-  Known Limitations
+  ## Retry Policies
 
+  | Worker      | Attempts | Backoff              |
+  |-------------|----------|----------------------|
+  | Scraper     | 3        | Exponential (2000ms) |
+  | Transformer | 2        | Fixed (5000ms)       |
+  | Persister   | 5        | Fixed (5000ms)       |
+
+  Jobs that exhaust all retries are moved to the Dead Letter Queue (DLQ) and can be retried manually via `POST /api/v1/jobs/dlq/:jobId/retry`.
+
+  ## Running Tests
+
+  ```bash
+  npm test
+  ```
+
+  Unit tests cover book price parsing and star rating conversion (`tests/unit/bookTransformer.test.ts`).
+
+  ## Known Limitations
+
+  - Queue names use hyphens (`scrape-pending`, `scrape-raw`, `scrape-processed`) instead of colons as specified. BullMQ v5 rejects queue names containing `:` characters.
   - Category extraction defaults to 'Unknown' — full category scraping can be added by following the category page links

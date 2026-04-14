@@ -32,7 +32,7 @@ export const transformerWorker = new Worker(
         attempt: job.attemptsMade,
       },
       {
-        attempts: 5,
+        attempts: 2,
         backoff: { type: "fixed", delay: 5000 },
       },
     );
