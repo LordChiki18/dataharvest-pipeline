@@ -29,7 +29,11 @@ jobsRouter.post("/trigger", async (req, res) => {
         createdAt: new Date().toISOString(),
         attempt: 0,
       },
-      { priority: priority },
+      {
+        priority: priority,
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+      },
     );
 
     await db("scrape_jobs").insert({

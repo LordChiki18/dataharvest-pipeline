@@ -5,6 +5,7 @@ import { scrapeHN } from "./scrapers/hnScraper";
 import { raw } from "../queue/queues";
 import { logger } from "../logger";
 import { v4 as uuidv4 } from "uuid";
+import { jobPayloadSchema } from "../queue/jobSchema";
 
 const connection = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null,
@@ -13,6 +14,14 @@ const connection = new Redis(process.env.REDIS_URL!, {
 export const scraperWorker = new Worker(
   "scrape-pending",
   async (job: Job) => {
+    const parsed = jobPayloadSchema.safeParse(job.data);
+    if (!parsed.success) {
+      logger.error(
+        { errors: parsed.error?.issues, jobId: job.data.jobId },
+        "Invalid job payload",
+      );
+      throw new Error("Invalid job payload");
+    }
     const { source, jobId } = job.data;
     logger.info({ jobId, source }, "Scraper worker processing job");
 

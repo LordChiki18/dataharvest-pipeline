@@ -15,8 +15,13 @@ export function startScheduler() {
         jobId,
         source: "books",
         createdAt: new Date().toISOString(),
+        attempts: 0,
       },
-      { priority: 2 },
+      {
+        priority: 2,
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+      },
     );
     logger.info({ jobId }, "Books scrape job scheduled");
   });
@@ -31,7 +36,11 @@ export function startScheduler() {
         createdAt: new Date().toISOString(),
         attempt: 0,
       },
-      { priority: 1 },
+      {
+        priority: 1,
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+      },
     );
     logger.info({ jobId }, "Hacker News scrape job scheduled");
   });

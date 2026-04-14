@@ -19,9 +19,21 @@ process.on("uncaughtException", (error) => {
 });
 async function shutdown() {
   logger.info("Shutting down...");
+
+  const timeout = setTimeout(() => {
+    logger.error("Shutdown timeout exceeded,forcing quit");
+    process.exit(1);
+  }, 30000); // 30 seconds
+
   await scraperWorker.close();
+  logger.info("Scraper worker closed");
   await transformerWorker.close();
+  logger.info("Transformer worker closed");
   await persisterWorker.close();
+  logger.info("Persister worker closed");
+
+  clearTimeout(timeout);
+  logger.info("Shutdown complete");
   process.exit(0);
 }
 
