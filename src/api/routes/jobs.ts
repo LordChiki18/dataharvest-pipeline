@@ -3,6 +3,7 @@ import { pending } from "../../queue/queues";
 import { db } from "../../db/client";
 import { logger } from "../../logger";
 import { v4 as uuidv4 } from "uuid";
+import { dlqQueue } from "../../queue/dlq";
 
 export const jobsRouter = Router();
 
@@ -53,6 +54,19 @@ jobsRouter.get("/", async (req, res) => {
   res.json(jobs);
 });
 
+// Get DLQ contents
+jobsRouter.get("/dlq", async (req, res) => {
+  const jobs = await dlqQueue.getJobs(["failed"], 0, 49);
+  const result = jobs.map((job) => ({
+    jobId: job.id,
+    source: job.data.source,
+    failedReason: job.failedReason,
+    attemptsMade: job.attemptsMade,
+    data: job.data,
+  }));
+  res.json({ result });
+});
+
 // Get single job
 jobsRouter.get("/:id", async (req, res) => {
   const job = await db("scrape_jobs").where("id", req.params.id).first();
@@ -61,4 +75,29 @@ jobsRouter.get("/:id", async (req, res) => {
     return;
   }
   res.json(job);
+});
+
+// Delete a DLQ job
+jobsRouter.delete("/dlq/:id", async (req, res) => {
+  const job = await dlqQueue.getJob(req.params.id);
+  if (!job) {
+    res.status(404).json({ error: "Job not found in DLQ" });
+    return;
+  }
+
+  await job.remove();
+  res.json({ message: "Job remove from DLQ" });
+});
+
+// Retry a DLQ job
+jobsRouter.post("/dlq/:jobId/retry", async (req, res) => {
+  const job = await dlqQueue.getJob(req.params.jobId);
+
+  if (!job) {
+    res.status(404).json({ error: "Job not found in DLQ" });
+    return;
+  }
+
+  await job.retry();
+  res.json({ message: "Job requeued for retry" });
 });
